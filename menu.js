@@ -2,11 +2,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const wrapper = document.querySelector('.wrapper');
     if (!wrapper) return;
 
+    // 1. Create Toggle Button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'toggle-btn no-print';
+    toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    document.body.appendChild(toggleBtn);
+
+    // 2. Create Sidebar
     const sidebar = document.createElement('div');
     sidebar.className = 'sidebar no-print';
     sidebar.innerHTML = `
         <div class="sidebar-header">
-            <h2>THE LALIT</h2>
+            <h2 style="font-family:'Cinzel'; color:var(--accent); font-size:1.1rem;">THE LALIT</h2>
             <small>Session 2026-27</small>
         </div>
         <ul class="sidebar-menu">
@@ -21,4 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
         </ul>
     `;
     wrapper.insertBefore(sidebar, wrapper.firstChild);
+
+    // 3. Toggle Logic
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        document.querySelector('.main-content').classList.toggle('active');
+        
+        // Icon change logic
+        const icon = toggleBtn.querySelector('i');
+        if (sidebar.classList.contains('active')) {
+            icon.className = 'fas fa-arrow-right';
+        } else {
+            icon.className = 'fas fa-bars';
+        }
+    });
 });
