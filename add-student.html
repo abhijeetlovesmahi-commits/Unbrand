@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission | The Lalit International</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+    <script src="init.js"></script>
+</head>
+<body>
+
+<div class="wrapper">
+    <script src="menu.js"></script>
+
+    <div class="main-content">
+        <div class="royal-card">
+            <h2 class="card-title"><i class="fas fa-user-plus"></i> New Student Admission</h2>
+            
+            <form id="admissionForm">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <input type="file" id="stPhoto" accept="image/*" onchange="previewImage(this)" style="display: none;">
+                    <div onclick="document.getElementById('stPhoto').click()" style="cursor: pointer;">
+                        <img id="imgPreview" src="https://via.placeholder.com/120x150?text=Upload+Photo" 
+                             style="width: 120px; height: 150px; border: 3px solid var(--accent); border-radius: 10px; object-fit: cover;">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Student Full Name</label>
+                        <input type="text" id="sName" placeholder="Enter name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Admission Class</label>
+                        <select id="sClass" required>
+                            <option value="">-- Select Class --</option>
+                            <option value="Nursery">Nursery</option>
+                            <script>for(let i=1; i<=12; i++) document.write(`<option value="${i}">${i}</option>`);</script>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Father's Name</label>
+                        <input type="text" id="sFather" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" id="sMobile" maxlength="10" required>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button type="submit" class="btn-royal" style="flex: 2;">Confirm Admission</button>
+                    <button type="button" class="btn-royal" style="background:var(--danger); border-color:var(--danger); flex: 1;" onclick="clearSystem()">Wipe All & Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let photoData = "";
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        let reader = new FileReader();
+        reader.onload = (e) => {
+            photoData = e.target.result;
+            document.getElementById('imgPreview').src = photoData;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+document.getElementById('admissionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.innerText = "Processing...";
+    btn.disabled = true;
+
+    const studentID = "LALIT" + Date.now().toString().slice(-5);
+
+    try {
+        await db.collection('students').doc(studentID).set({
+            uniqueID: studentID,
+            name: document.getElementById('sName').value,
+            class: document.getElementById('sClass').value,
+            father: document.getElementById('sFather').value,
+            mobile: document.getElementById('sMobile').value,
+            photo: photoData,
+            date: new Date().toLocaleDateString('en-GB'),
+            timestamp: Date.now()
+        });
+        alert("Success! Admission ID: " + studentID);
+        location.reload();
+    } catch (err) {
+        alert("Error: " + err.message);
+        btn.disabled = false;
+    }
+});
+
+// Purana kachra saaf karne ke liye
+async function clearSystem() {
+    if(confirm("Dhyan dein! Isse naye database ke saare 18 students delete ho jayenge. Kya aap taiyar hain?")) {
+        const snap = await db.collection('students').get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        alert("System Reset! Ab dashboard 0 dikhayega.");
+        location.href = "index.html";
+    }
+}
+</script>
+</body>
+</html>
