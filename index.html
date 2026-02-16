@@ -1,30 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>School Portal</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="web-title">School Website</title>
     <style>
-        :root { --main-color: #2c3e50; }
-        body { font-family: sans-serif; background: var(--main-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: white; }
-        .login-card { background: white; color: #333; padding: 40px; border-radius: 15px; text-align: center; width: 300px; }
-        #logo-display { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; display: none; margin: 0 auto 15px; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
-        button { width: 100%; padding: 14px; background: var(--main-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        :root { --main: #4361ee; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; background: #fdfdfd; color: #333; }
+        
+        /* Navigation */
+        nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); sticky: top; }
+        .logo-box { display: flex; align-items: center; gap: 10px; }
+        .logo-box img { width: 50px; border-radius: 50%; }
+        .nav-links { display: flex; gap: 20px; font-weight: 500; cursor: pointer; }
+
+        /* Notice Scroller */
+        .notice-bar { background: var(--main); color: white; padding: 10px; overflow: hidden; white-space: nowrap; }
+        .notice-text { display: inline-block; padding-left: 100%; animation: scroll 20s linear infinite; font-weight: bold; }
+        @keyframes scroll { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
+        /* Hero Section */
+        .hero { padding: 80px 5%; text-align: center; background: linear-gradient(rgba(67, 97, 238, 0.05), white); }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .btn-portal { background: var(--main); color: white; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
+
+        /* Student Login Box */
+        .login-section { padding: 50px 5%; display: flex; justify-content: center; }
+        .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-login { width: 100%; background: var(--main); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+
+        .vacancy-tag { background: #ff4757; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <img id="logo-display" src="">
-        <h2 id="name-display">Welcome</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Password">
-        <button onclick="login()">Login</button>
+    <nav>
+        <div class="logo-box">
+            <img id="web-logo" src="" alt="">
+            <h2 id="web-name">Loading...</h2>
+        </div>
+        <div class="nav-links">
+            <span>Admission</span>
+            <span>Gallery</span>
+            <span>Contact</span>
+        </div>
+    </nav>
+
+    <div class="notice-bar">
+        <div class="notice-text" id="web-notice">Welcome to our school. Check out the latest updates here!</div>
     </div>
+
+    <section class="hero">
+        <h1 id="hero-title">Welcome to Our School</h1>
+        <p>Providing quality education for a brighter future.</p>
+        <div id="vacancy-box"></div>
+        <br>
+        <a href="#login" class="btn-portal">Go to Student Portal</a>
+    </section>
+
+    <section class="login-section" id="login">
+        <div class="login-card">
+            <h3>Student Login</h3>
+            <p style="font-size: 0.9rem; color: #666;">Enter your Unique ID and Registered Mobile No.</p>
+            <input type="text" id="stuID" placeholder="Student ID (e.g. SCH-10001)">
+            <input type="password" id="stuPass" placeholder="Registered Phone No.">
+            <button class="btn-login" onclick="studentLogin()">View Profile & Homework</button>
+        </div>
+    </section>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
@@ -35,28 +82,51 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
 
-        async function loadBranding() {
-            const snap = await getDoc(doc(db, "appSettings", "branding"));
+        // --- Fetch Website Data & Branding ---
+        onSnapshot(doc(db, "appSettings", "branding"), (snap) => {
             if(snap.exists()){
                 const d = snap.data();
-                document.getElementById('name-display').innerText = d.schoolName;
-                document.documentElement.style.setProperty('--main-color', d.themeColor);
-                if(d.logoCode) {
-                    document.getElementById('logo-display').src = d.logoCode;
-                    document.getElementById('logo-display').style.display = "block";
+                document.getElementById('web-name').innerText = d.schoolName;
+                document.getElementById('web-title').innerText = d.schoolName;
+                document.getElementById('hero-title').innerText = "Welcome to " + d.schoolName;
+                document.getElementById('web-logo').src = d.logoCode;
+                document.documentElement.style.setProperty('--main', d.themeColor);
+            }
+        });
+
+        // --- Fetch Notices & Vacancies ---
+        onSnapshot(doc(db, "appSettings", "website"), (snap) => {
+            if(snap.exists()){
+                const d = snap.data();
+                document.getElementById('web-notice').innerText = d.notice || "No new updates.";
+                if(d.vacancies) {
+                    document.getElementById('vacancy-box').innerHTML = `<span class="vacancy-tag">Hiring: ${d.vacancies}</span>`;
                 }
             }
-        }
-        loadBranding();
+        });
 
-        window.login = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            signInWithEmailAndPassword(auth, e, p)
-            .then(() => window.location.href="admin.html")
-            .catch(err => alert(err.message));
+        // --- Student Login Logic ---
+        window.studentLogin = async () => {
+            const id = document.getElementById('stuID').value;
+            const pass = document.getElementById('stuPass').value;
+            
+            const docRef = doc(db, "users", id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const user = docSnap.data();
+                // Check if contact matches password
+                if(user.parent.contact === pass) {
+                    alert("Welcome " + user.name);
+                    localStorage.setItem('studentData', JSON.stringify(user));
+                    window.location.href = "student-portal.html"; // Hum ye page agle step mein banayenge
+                } else {
+                    alert("Incorrect Password!");
+                }
+            } else {
+                alert("Student ID not found!");
+            }
         };
     </script>
 </body>
