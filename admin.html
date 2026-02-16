@@ -2,72 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - Branding Settings</title>
+    <title>Admin - Free Photo Upload</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .box { max-width: 500px; background: white; padding: 40px; border-radius: 12px; margin: 40px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #27ae60; }
-        h1 { color: #333; font-size: 24px; margin-bottom: 30px; }
-        label { display: block; margin-top: 20px; color: #666; font-size: 14px; }
-        input { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-save { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 6px; margin-top: 30px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .btn-logout { width: 100%; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; margin-top: 15px; cursor: pointer; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #preview { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; display: none; margin: 10px auto; border: 2px solid #27ae60; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h1>🎨 Admin Branding</h1>
+<div class="card">
+    <h2>🎨 Brand Setup (No Storage)</h2>
+    <label>School Name:</label>
+    <input type="text" id="sName" placeholder="School Name">
     
-    <label>School Name</label>
-    <input type="text" id="sName" placeholder="e.g. DPS International">
-
-    <label>Theme Color</label>
+    <label>Select Logo (Phone/PC):</label>
+    <input type="file" id="logoInput" accept="image/*">
+    <img id="preview" src="">
+    
+    <label>Theme Color:</label>
     <input type="color" id="sColor" value="#2c3e50">
-
-    <button id="save" class="btn-save">Update & Go Live</button>
-    <button onclick="location.href='index.html'" class="btn-logout">Logout / Back</button>
+    
+    <button id="saveBtn" class="btn">Save Everything Free</button>
+    <p id="status" style="text-align:center; font-size:12px;"></p>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
         authDomain: "abhijeet-69d56.firebaseapp.com",
         projectId: "abhijeet-69d56",
-        storageBucket: "abhijeet-69d56.firebasestorage.app",
         appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Pehle se saved data load karna
-    async function init() {
-        const snap = await getDoc(doc(db, "appSettings", "branding"));
-        if(snap.exists()){
-            document.getElementById('sName').value = snap.data().schoolName;
-            document.getElementById('sColor').value = snap.data().themeColor;
-        }
-    }
-    init();
+    let base64Image = "";
 
-    document.getElementById('save').addEventListener('click', async () => {
+    // Photo ko "Code" (Base64) mein badalne ka logic
+    document.getElementById('logoInput').onchange = function(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function() {
+            base64Image = reader.result; // Ye hai wo "Code"
+            document.getElementById('preview').src = base64Image;
+            document.getElementById('preview').style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    };
+
+    document.getElementById('saveBtn').onclick = async () => {
         const name = document.getElementById('sName').value;
         const color = document.getElementById('sColor').value;
+        const status = document.getElementById('status');
 
+        status.innerText = "Saving...";
         try {
             await setDoc(doc(db, "appSettings", "branding"), {
                 schoolName: name,
-                themeColor: color
+                themeColor: color,
+                logoCode: base64Image // Photo text format mein save ho rahi hai
             });
-            alert("Boom! Branding Updated. Refresh Index to see.");
-        } catch (e) {
+            alert("Settings Saved!");
+            status.innerText = "✅ Done!";
+        } catch(e) {
             alert("Error: " + e.message);
         }
-    });
+    };
 </script>
-
 </body>
 </html>
