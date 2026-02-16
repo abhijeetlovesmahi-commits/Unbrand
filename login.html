@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - School Pro Portal</title>
+    <style>
+        :root { --main: #4361ee; }
+        body { font-family: 'Poppins', sans-serif; background: #f4f7fe; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        .login-card h2 { margin-bottom: 20px; color: #333; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-login { width: 100%; background: var(--main); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .back-web { display: block; margin-top: 20px; color: #888; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <img id="login-logo" src="" style="width: 70px; border-radius: 50%; margin-bottom: 10px;">
+    <h2 id="school-name">Portal Login</h2>
+    <input type="email" id="email" placeholder="Admin Email">
+    <input type="password" id="password" placeholder="Password">
+    <button class="btn-login" id="loginBtn">Enter Dashboard</button>
+    <a href="index.html" class="back-web">← Back to Website</a>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
+        authDomain: "abhijeet-69d56.firebaseapp.com",
+        projectId: "abhijeet-69d56",
+        appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Load Branding for Login Page
+    const brandRef = doc(db, "appSettings", "branding");
+    getDoc(brandRef).then(snap => {
+        if(snap.exists()){
+            document.getElementById('school-name').innerText = snap.data().schoolName;
+            document.getElementById('login-logo').src = snap.data().logoCode;
+            document.documentElement.style.setProperty('--main', snap.data().themeColor);
+        }
+    });
+
+    document.getElementById('loginBtn').onclick = () => {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value;
+        signInWithEmailAndPassword(auth, e, p)
+            .then(() => location.href = 'admin.html')
+            .catch(err => alert("Login Failed: " + err.message));
+    };
+</script>
+</body>
+</html>
