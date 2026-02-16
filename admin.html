@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Branding Settings</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .box { max-width: 500px; background: white; padding: 40px; border-radius: 12px; margin: 40px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #27ae60; }
+        h1 { color: #333; font-size: 24px; margin-bottom: 30px; }
+        label { display: block; margin-top: 20px; color: #666; font-size: 14px; }
+        input { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-save { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 6px; margin-top: 30px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn-logout { width: 100%; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; margin-top: 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>🎨 Admin Branding</h1>
+    
+    <label>School Name</label>
+    <input type="text" id="sName" placeholder="e.g. DPS International">
+
+    <label>Theme Color</label>
+    <input type="color" id="sColor" value="#2c3e50">
+
+    <button id="save" class="btn-save">Update & Go Live</button>
+    <button onclick="location.href='index.html'" class="btn-logout">Logout / Back</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
+        authDomain: "abhijeet-69d56.firebaseapp.com",
+        projectId: "abhijeet-69d56",
+        storageBucket: "abhijeet-69d56.firebasestorage.app",
+        appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Pehle se saved data load karna
+    async function init() {
+        const snap = await getDoc(doc(db, "appSettings", "branding"));
+        if(snap.exists()){
+            document.getElementById('sName').value = snap.data().schoolName;
+            document.getElementById('sColor').value = snap.data().themeColor;
+        }
+    }
+    init();
+
+    document.getElementById('save').addEventListener('click', async () => {
+        const name = document.getElementById('sName').value;
+        const color = document.getElementById('sColor').value;
+
+        try {
+            await setDoc(doc(db, "appSettings", "branding"), {
+                schoolName: name,
+                themeColor: color
+            });
+            alert("Boom! Branding Updated. Refresh Index to see.");
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    });
+</script>
+
+</body>
+</html>
