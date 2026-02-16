@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admission Form</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; padding: 20px; }
+        .form-card { background: white; padding: 30px; border-radius: 15px; max-width: 900px; margin: auto; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        label { font-weight: bold; display: block; margin-top: 10px; color: #34495e; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .photo-section { text-align: center; border: 2px dashed #3498db; padding: 20px; border-radius: 10px; grid-column: span 2; }
+        #preview-img { width: 120px; height: 150px; object-fit: cover; border-radius: 5px; display: none; margin: 10px auto; border: 2px solid #ddd; }
+        .btn-submit { grid-column: span 2; background: #27ae60; color: white; padding: 18px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .section-title { grid-column: span 2; background: #ecf0f1; padding: 10px; margin-top: 20px; border-radius: 5px; font-weight: bold; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <h2>🎓 New Student Admission</h2>
+    <div class="grid">
+        <div class="photo-section">
+            <label>Student Photo (Auto-Resized)</label>
+            <input type="file" id="stuPhoto" accept="image/*">
+            <img id="preview-img" src="">
+        </div>
+
+        <div class="section-title">Personal Details</div>
+        <input type="text" id="fullName" placeholder="Student Full Name" required>
+        <input type="date" id="dob" title="Date of Birth">
+        
+        <select id="class">
+            <option value="">Select Class</option>
+            <option>Pre-Nursery</option><option>Nursery</option><option>LKG</option><option>UKG</option>
+            <option>1st</option><option>2nd</option><option>3rd</option><option>4th</option><option>5th</option>
+            <option>6th</option><option>7th</option><option>8th</option><option>9th</option><option>10th</option>
+            <option>11th</option><option>12th</option>
+        </select>
+        
+        <select id="section">
+            <option value="">Select Section</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+        </select>
+
+        <select id="house">
+            <option value="">Select House</option>
+            <option style="color:red">Red</option><option style="color:blue">Blue</option>
+            <option style="color:green">Green</option><option style="color:orange">Yellow</option>
+        </select>
+
+        <input type="text" id="aadhar" placeholder="Aadhar Card Number">
+
+        <div class="section-title">Parent's Info & Address</div>
+        <input type="text" id="fatherName" placeholder="Father's Name">
+        <input type="text" id="motherName" placeholder="Mother's Name">
+        <input type="tel" id="contact" placeholder="Emergency Contact Number">
+        <input type="text" id="address" placeholder="Full Home Address" style="grid-column: span 2;">
+
+        <div class="section-title">Facility & Services</div>
+        <select id="hostel">
+            <option value="No">Stay in Hostel? No</option>
+            <option value="Yes">Stay in Hostel? Yes</option>
+        </select>
+
+        <select id="transport" onchange="toggleKm()">
+            <option value="No">Use School Transport? No</option>
+            <option value="Yes">Use School Transport? Yes</option>
+        </select>
+
+        <select id="km" disabled>
+            <option value="0">Select Distance (KM)</option>
+            <option>0-3 KM</option><option>3-6 KM</option><option>6-10 KM</option>
+            <option>10-15 KM</option><option>15-20 KM</option><option>20-30 KM</option>
+        </select>
+
+        <select id="books">
+            <option value="No">Take Books from School? No</option>
+            <option value="Yes">Take Books from School? Yes</option>
+        </select>
+
+        <button id="submitBtn" class="btn-submit">Complete Admission & Generate ID</button>
+    </div>
+    <p id="msg" style="text-align:center; font-weight:bold;"></p>
+</div>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
+        authDomain: "abhijeet-69d56.firebaseapp.com",
+        projectId: "abhijeet-69d56",
+        appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let stuPhotoBase64 = "";
+
+    // Toggle KM select
+    window.toggleKm = () => {
+        document.getElementById('km').disabled = document.getElementById('transport').value === "No";
+    };
+
+    // Resize Logic
+    document.getElementById('stuPhoto').onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+                const cvs = document.getElementById('canvas');
+                cvs.width = 150; cvs.height = 180;
+                cvs.getContext('2d').drawImage(img, 0, 0, 150, 180);
+                stuPhotoBase64 = cvs.toDataURL('image/jpeg', 0.8);
+                document.getElementById('preview-img').src = stuPhotoBase64;
+                document.getElementById('preview-img').style.display = 'block';
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    document.getElementById('submitBtn').onclick = async () => {
+        const name = document.getElementById('fullName').value;
+        if(!name) return alert("Student Name is required!");
+
+        const btn = document.getElementById('submitBtn');
+        const msg = document.getElementById('msg');
+        btn.innerText = "Processing Cloud Data...";
+        
+        // Generate a Unique Student ID
+        const studentID = "STU" + Date.now().toString().slice(-6);
+
+        const studentData = {
+            uid: studentID,
+            name: name,
+            dob: document.getElementById('dob').value,
+            class: document.getElementById('class').value,
+            section: document.getElementById('section').value,
+            house: document.getElementById('house').value,
+            aadhar: document.getElementById('aadhar').value,
+            parent: {
+                father: document.getElementById('fatherName').value,
+                mother: document.getElementById('motherName').value,
+                contact: document.getElementById('contact').value
+            },
+            address: document.getElementById('address').value,
+            facilities: {
+                hostel: document.getElementById('hostel').value,
+                transport: document.getElementById('transport').value,
+                km: document.getElementById('km').value,
+                books: document.getElementById('books').value
+            },
+            photo: stuPhotoBase64,
+            role: "student",
+            admissionDate: new Date().toLocaleDateString()
+        };
+
+        try {
+            // Save in 'users' for login and 'students' for management
+            await setDoc(doc(db, "users", studentID), studentData);
+            
+            msg.style.color = "green";
+            msg.innerText = `✅ Admission Success! Student ID: ${studentID}`;
+            alert(`Admission Done! User ID: ${studentID}\nPassword (default): 123456`);
+            btn.innerText = "Complete Admission & Generate ID";
+        } catch (e) {
+            alert("Error: " + e.message);
+            btn.innerText = "Retry Admission";
+        }
+    };
+</script>
+</body>
+</html>
