@@ -1,26 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Portal - Login</title>
+    <title>School Portal</title>
     <style>
         :root { --main-color: #2c3e50; }
         body { font-family: sans-serif; background: var(--main-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: white; }
-        .login-card { background: white; color: #333; padding: 40px; border-radius: 15px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { margin-bottom: 25px; color: var(--main-color); }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        button { width: 100%; padding: 14px; background: var(--main-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; }
-        button:hover { opacity: 0.9; }
+        .login-card { background: white; color: #333; padding: 40px; border-radius: 15px; text-align: center; width: 300px; }
+        #logo-display { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; display: none; margin: 0 auto 15px; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        button { width: 100%; padding: 14px; background: var(--main-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <h2 id="brand-display">School Portal</h2>
-        <input type="email" id="email" placeholder="Email Address">
+        <img id="logo-display" src="">
+        <h2 id="name-display">Welcome</h2>
+        <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
-        <button id="loginBtn">LOG IN</button>
+        <button onclick="login()">Login</button>
     </div>
 
     <script type="module">
@@ -32,49 +30,34 @@
             apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
             authDomain: "abhijeet-69d56.firebaseapp.com",
             projectId: "abhijeet-69d56",
-            storageBucket: "abhijeet-69d56.firebasestorage.app",
             appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // Branding Load Logic
         async function loadBranding() {
             const snap = await getDoc(doc(db, "appSettings", "branding"));
-            if (snap.exists()) {
-                const data = snap.data();
-                document.getElementById('brand-display').innerText = data.schoolName || "School Portal";
-                document.documentElement.style.setProperty('--main-color', data.themeColor || "#2c3e50");
+            if(snap.exists()){
+                const d = snap.data();
+                document.getElementById('name-display').innerText = d.schoolName;
+                document.documentElement.style.setProperty('--main-color', d.themeColor);
+                if(d.logoCode) {
+                    document.getElementById('logo-display').src = d.logoCode;
+                    document.getElementById('logo-display').style.display = "block";
+                }
             }
         }
         loadBranding();
 
-        document.getElementById('loginBtn').addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('pass').value;
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                const userSnap = await getDoc(doc(db, "users", user.uid));
-                if (userSnap.exists()) {
-                    const role = userSnap.data().role;
-                    if (role === "admin") {
-                        // Success! Seedha Admin Dashboard par
-                        window.location.href = "admin.html";
-                    } else {
-                        alert("Access Denied: You are not an Admin.");
-                    }
-                } else {
-                    alert("No Profile Found for UID: " + user.uid);
-                }
-            } catch (error) {
-                alert("Login Error: " + error.message);
-            }
-        });
+        window.login = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            signInWithEmailAndPassword(auth, e, p)
+            .then(() => window.location.href="admin.html")
+            .catch(err => alert(err.message));
+        };
     </script>
 </body>
 </html>
