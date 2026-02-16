@@ -1,1 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loading...</title>
+    <style>
+        :root { --main-color: #2c3e50; } /* Default Color */
+        body { font-family: sans-serif; background: var(--main-color); color: white; text-align: center; }
+        .card { background: white; color: black; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 50px; }
+    </style>
+</head>
+<body>
+    <h1 id="brand-name">School Portal</h1>
+    <div class="card">
+        <img id="app-logo" src="" alt="Logo" style="width:100px; display:none;">
+        <h3>Login</h3>
+        <input type="email" id="email" placeholder="Email"><br><br>
+        <input type="password" id="pass" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
+    </div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // --- HAR CLIENT KE LIYE BAS YE BADALNA HAI ---
+        const config = {
+            apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
+            authDomain: "abhijeet-69d56.firebaseapp.com",
+            projectId: "abhijeet-69d56",
+            appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e",
+            // Branding
+            name: "My School Pro",
+            color: "#e74c3c" 
+        };
+
+        // UI Apply
+        document.title = config.name;
+        document.getElementById('brand-name').innerText = config.name;
+        document.documentElement.style.setProperty('--main-color', config.color);
+
+        // Firebase Init
+        const app = initializeApp(config);
+        const auth = getAuth(app);
+
+        window.login = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            signInWithEmailAndPassword(auth, e, p)
+                .then(() => alert("Login Success!"))
+                .catch(err => alert(err.message));
+        };
+    </script>
+</body>
+</html>
