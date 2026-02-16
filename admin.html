@@ -3,103 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - School Pro SaaS</title>
+    <title>Royal Admin - School Pro Lux</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #4361ee; --bg: #f4f7fe; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        :root { --royal: #4361ee; --gold: #d4af37; --dark: #1a1c23; --glass: rgba(255, 255, 255, 0.95); }
         
-        /* Sidebar Navigation */
-        .sidebar { width: 250px; background: #fff; height: 100vh; border-right: 1px solid #e0e0e0; position: fixed; }
-        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; margin: 0; display: flex; overflow-x: hidden; }
+
+        /* Sidebar Styling */
+        .sidebar { width: 280px; background: var(--dark); height: 100vh; color: white; position: fixed; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+        .sidebar.hidden { transform: translateX(-280px); }
+        
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--gold); padding: 5px; }
+        .sidebar-header h3 { font-family: 'Cinzel', serif; font-size: 1.1rem; margin-top: 15px; color: var(--gold); }
+
         .nav-links { list-style: none; padding: 20px 0; margin: 0; }
-        .nav-links li { padding: 15px 25px; cursor: pointer; color: #666; transition: 0.3s; font-weight: 500; }
-        .nav-links li:hover, .nav-links li.active { background: var(--main); color: #fff; border-radius: 0 30px 30px 0; margin-right: 10px; }
+        .nav-links li { padding: 15px 30px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; border-left: 4px solid transparent; }
+        .nav-links li:hover, .nav-links li.active { background: rgba(255,255,255,0.05); border-left-color: var(--gold); color: var(--gold); }
 
-        /* Main Content Area */
-        .main-content { margin-left: 250px; padding: 30px; width: 100%; }
-        .tab-content { display: none; animation: fadeIn 0.5s; }
+        /* Main Content */
+        .main-content { margin-left: 280px; width: 100%; transition: 0.4s; padding: 30px; box-sizing: border-box; }
+        .main-content.full { margin-left: 0; }
+
+        /* Floating Menu Button (Background-less) */
+        #menu-btn { position: fixed; top: 20px; left: 20px; background: none; border: none; font-size: 28px; cursor: pointer; z-index: 1100; transition: 0.3s; color: var(--dark); outline: none; }
+        .sidebar.hidden ~ #menu-btn { color: var(--royal); left: 20px; }
+
+        /* Luxury Cards */
+        .card { background: var(--glass); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); }
+        h2 { font-family: 'Cinzel', serif; color: var(--dark); margin-bottom: 25px; border-left: 5px solid var(--gold); padding-left: 15px; }
+
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: 600; display: block; margin-bottom: 8px; color: #444; }
+        input, select, textarea { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; background: #fdfdfd; transition: 0.3s; }
+        input:focus { border-color: var(--royal); outline: none; box-shadow: 0 0 10px rgba(67, 97, 238, 0.1); }
+
+        .btn-royal { background: var(--dark); color: var(--gold); padding: 15px 35px; border: 1px solid var(--gold); border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-royal:hover { background: var(--gold); color: var(--dark); box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4); }
+
+        /* Image Preview Area */
+        .logo-preview-box { text-align: center; padding: 20px; border: 2px dashed #ddd; border-radius: 15px; margin-bottom: 20px; }
+        #preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: none; margin: 10px auto; border: 3px solid var(--gold); }
+
+        .tab-content { display: none; animation: slideUp 0.5s ease; }
         .tab-content.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Modern Cards */
-        .card { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; box-sizing: border-box; }
-        .btn { background: var(--main); color: #fff; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
+    <button id="menu-btn" onclick="toggleSidebar()">☰</button>
+
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img id="side-logo" src="" style="width: 50px; border-radius: 50%;">
-            <h3 id="side-name">School Admin</h3>
+            <img id="side-logo" src="https://via.placeholder.com/80">
+            <h3 id="side-school-name">Royal School</h3>
         </div>
         <ul class="nav-links">
-            <li class="active" onclick="showTab('dashboard')">🏠 Dashboard</li>
-            <li onclick="showTab('branding')">🎨 Branding</li>
-            <li onclick="showTab('website')">🌐 Website Control</li>
-            <li onclick="showTab('students')">👤 Students & Attendance</li>
-            <li onclick="showTab('homework')">📝 Homework & News</li>
-            <li onclick="logout()" style="color: #ff4757;">🚪 Logout</li>
+            <li class="active" onclick="showTab('dashboard')">🏰 Dashboard</li>
+            <li onclick="showTab('branding-tab')">🎨 Branding</li>
+            <li onclick="showTab('website-tab')">🌐 Website Manager</li>
+            <li onclick="showTab('student-tab')">👤 Students</li>
+            <li onclick="logout()" style="color: #ff4757; margin-top: 50px;">🚪 Logout</li>
         </ul>
     </div>
 
-    <div class="main-content">
+    <div class="main-content" id="main-content">
         
         <div id="dashboard" class="tab-content active">
-            <h2>Welcome Back, <span id="welcome-name">Admin</span></h2>
-            <div class="grid-3">
-                <div class="card"><h3>Total Students</h3><p id="total-stu">0</p></div>
-                <div class="card"><h3>Today's Notice</h3><p id="total-notices">0</p></div>
-                <div class="card"><h3>Staff Count</h3><p>--</p></div>
+            <h2>Luxury Analytics</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div class="card"><h3>Total Students</h3><p id="count-stu" style="font-size: 2rem; font-weight: bold; color: var(--royal);">0</p></div>
+                <div class="card"><h3>Active Notices</h3><p id="count-notice" style="font-size: 2rem; font-weight: bold; color: var(--gold);">0</p></div>
             </div>
         </div>
 
-        <div id="branding" class="tab-content">
+        <div id="branding-tab" class="tab-content">
             <div class="card">
-                <h2>🎨 Master Branding</h2>
+                <h2>School Branding Setup</h2>
+                <div class="logo-preview-box">
+                    <label>Update Official Logo</label>
+                    <input type="file" id="logoInput" accept="image/*" style="border:none;">
+                    <img id="preview" src="">
+                </div>
                 <div class="form-group">
                     <label>School Name</label>
-                    <input type="text" id="sName" placeholder="Enter Full Name">
+                    <input type="text" id="schoolNameInput" placeholder="Enter School Name">
                 </div>
                 <div class="form-group">
-                    <label>Theme Color</label>
-                    <input type="color" id="sColor" value="#4361ee">
+                    <label>Theme Royal Color</label>
+                    <input type="color" id="colorInput" value="#4361ee" style="height: 60px; padding: 5px; cursor: pointer;">
                 </div>
-                <button class="btn" onclick="saveBrand()">Update All Branding</button>
+                <button class="btn-royal" onclick="updateAllBranding()">Apply All Changes</button>
+                <p id="brandStatus" style="text-align:center; font-weight:bold;"></p>
             </div>
         </div>
 
-        <div id="website" class="tab-content">
+        <div id="website-tab" class="tab-content">
             <div class="card">
-                <h2>🌐 Website Content Manager</h2>
+                <h2>Website Content Manager</h2>
                 <div class="form-group">
-                    <label>Latest Notice (Scroll on Website)</label>
-                    <textarea id="noticeText" rows="3" placeholder="Admission Open for 2026..."></textarea>
+                    <label>Scrolling Notice Board</label>
+                    <textarea id="webNotice" rows="4" placeholder="Type school notices here..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Current Vacancies</label>
-                    <input type="text" id="vacancy" placeholder="Needed: Math Teacher (Apply at Office)">
+                    <label>Career/Vacancies</label>
+                    <input type="text" id="webVacancy" placeholder="e.g. Hiring PGT Physics Teacher">
                 </div>
-                <button class="btn" onclick="updateWebsite()">Publish to Public Website</button>
-            </div>
-        </div>
-
-        <div id="students" class="tab-content">
-            <div class="card">
-                <button class="btn" onclick="location.href='admission.html'">➕ New Admission</button>
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>Name</th><th>Class</th><th>Action</th></tr>
-                    </thead>
-                    <tbody id="student-table"></tbody>
-                </table>
+                <button class="btn-royal" onclick="saveWebData()">Publish to Website</button>
             </div>
         </div>
 
@@ -115,50 +127,82 @@
             projectId: "abhijeet-69d56",
             appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- UI Navigation ---
+        // Sidebar Toggle Logic
+        window.toggleSidebar = () => {
+            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('main-content').classList.toggle('full');
+        };
+
+        // Tab Switching Logic
         window.showTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
             event.currentTarget.classList.add('active');
         };
 
-        // --- Dynamic Branding Load ---
-        onSnapshot(doc(db, "appSettings", "branding"), (snap) => {
-            if(snap.exists()){
-                const d = snap.data();
-                document.getElementById('side-name').innerText = d.schoolName;
+        // --- Branding Implementation ---
+        let base64Logo = "";
+        document.getElementById('logoInput').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 200; canvas.height = 200;
+                    canvas.getContext('2d').drawImage(img, 0, 0, 200, 200);
+                    base64Logo = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('preview').src = base64Logo;
+                    document.getElementById('preview').style.display = 'block';
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        window.updateAllBranding = async () => {
+            const name = document.getElementById('schoolNameInput').value;
+            const color = document.getElementById('colorInput').value;
+            const status = document.getElementById('brandStatus');
+            status.innerText = "⏳ Synchronizing Luxury Theme...";
+            
+            try {
+                await setDoc(doc(db, "appSettings", "branding"), {
+                    schoolName: name,
+                    themeColor: color,
+                    logoCode: base64Logo || document.getElementById('side-logo').src
+                }, { merge: true });
+                status.innerText = "✅ Royal Theme Applied Successfully!";
+                status.style.color = "green";
+            } catch(e) { alert(e.message); }
+        };
+
+        // --- Website Manager ---
+        window.saveWebData = async () => {
+            const notice = document.getElementById('webNotice').value;
+            const vacancy = document.getElementById('webVacancy').value;
+            await setDoc(doc(db, "appSettings", "website"), { notice, vacancies: vacancy });
+            alert("Published Successfully!");
+        };
+
+        // Real-time Data Sync
+        onSnapshot(doc(db, "appSettings", "branding"), s => {
+            if(s.exists()){
+                const d = s.data();
+                document.getElementById('side-school-name').innerText = d.schoolName;
                 document.getElementById('side-logo').src = d.logoCode;
-                document.documentElement.style.setProperty('--main', d.themeColor);
+                document.documentElement.style.setProperty('--royal', d.themeColor);
             }
         });
 
-        // --- Load Students List ---
-        onSnapshot(collection(db, "users"), (snap) => {
-            const tbody = document.getElementById('student-table');
-            let count = 0; tbody.innerHTML = "";
-            snap.forEach(d => {
-                const u = d.data();
-                if(u.role === "student"){
-                    count++;
-                    tbody.innerHTML += `<tr><td>${u.uid}</td><td>${u.name}</td><td>${u.class}</td><td><button class="btn" style="padding:5px 10px">Edit</button></td></tr>`;
-                }
-            });
-            document.getElementById('total-stu').innerText = count;
+        onSnapshot(collection(db, "users"), s => {
+            let count = 0;
+            s.forEach(d => { if(d.data().role === "student") count++; });
+            document.getElementById('count-stu').innerText = count;
         });
-
-        // --- Update Website Notice ---
-        window.updateWebsite = async () => {
-            const n = document.getElementById('noticeText').value;
-            const v = document.getElementById('vacancy').value;
-            await setDoc(doc(db, "appSettings", "website"), { notice: n, vacancies: v });
-            alert("Published to Public Website!");
-        };
-
     </script>
 </body>
 </html>
