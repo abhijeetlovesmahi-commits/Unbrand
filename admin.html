@@ -2,61 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - Perfect Logo Resize</title>
+    <title>Admin Dashboard - School Pro</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
+        .container { max-width: 900px; margin: auto; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; text-align: center; }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; transition: 0.3s; }
-        .btn:hover { background: #219150; }
-        #preview { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; display: none; margin: 15px auto; border: 3px solid #27ae60; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        #status { text-align: center; font-size: 14px; margin-top: 10px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .btn { padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; color: white; transition: 0.3s; text-align: center; text-decoration: none; }
+        .btn-brand { background: #27ae60; }
+        .btn-admission { background: #e67e22; }
+        .btn-report { background: #8e44ad; }
+        .btn-logout { background: #c0392b; width: 100%; }
+        
+        /* Branding Styles */
+        input[type="text"], input[type="file"] { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        #preview { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; display: none; margin: 10px auto; border: 3px solid #27ae60; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 10px; overflow: hidden; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        .p-btn { background: #2ecc71; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .a-btn { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        th { background: #f8f9fa; color: #555; }
+        .p-btn { background: #2ecc71; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .a-btn { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="grid-menu">
+        <button onclick="location.href='admission.html'" class="btn btn-admission">➕ New Admission Form</button>
+        <button onclick="location.href='reports.html'" class="btn btn-report">📊 View Full Reports</button>
+    </div>
+
     <div class="card">
-        <h2>🎨 Branding & Style Setup</h2>
-        
-        <label>School Name:</label>
-        <input type="text" id="sName" placeholder="Enter School Name">
-        
-        <label>Select Logo (Any Shape):</label>
+        <h2>🎨 School Branding</h2>
+        <input type="text" id="sName" placeholder="Update School Name">
+        <label>Update Logo:</label>
         <input type="file" id="logoInput" accept="image/*">
         <img id="preview" src="">
-        
-        <label>Theme Color:</label>
-        <input type="color" id="sColor" value="#2c3e50" style="height: 50px; cursor: pointer;">
-        
-        <button id="saveBtn" class="btn">Update School Brand</button>
-        <p id="status"></p>
-    </div>
-
-    <div class="card" style="text-align: center;">
-        <button onclick="location.href='reports.html'" class="btn" style="background: #8e44ad;">📊 View Attendance Reports</button>
+        <input type="color" id="sColor" value="#2c3e50" style="width: 100%; height: 50px; cursor: pointer; border: none; border-radius: 8px;">
+        <button id="saveBtn" class="btn btn-brand" style="width: 100%; margin-top: 15px;">Save & Update Brand</button>
+        <p id="status" style="text-align: center; font-weight: bold;"></p>
     </div>
 
     <div class="card">
-        <h2>📋 Student Attendance (Today)</h2>
+        <h2>📋 Quick Attendance (Students List)</h2>
         <table>
             <thead>
                 <tr>
                     <th>Student Name</th>
-                    <th>Action</th>
+                    <th>Class</th>
+                    <th>House</th>
+                    <th>Attendance</th>
                 </tr>
             </thead>
             <tbody id="studentTableBody">
                 </tbody>
         </table>
     </div>
+
+    <button onclick="logout()" class="btn btn-logout">Logout Admin Panel</button>
 </div>
 
 <canvas id="resizeCanvas" style="display:none;"></canvas>
@@ -64,6 +69,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
@@ -74,99 +80,87 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    let finalBase64 = "";
+    let finalLogoBase64 = "";
 
-    // --- SMART AUTO RESIZE LOGIC (Fixes Stretching) ---
-    document.getElementById('logoInput').onchange = function(e) {
+    // --- Smart Logo Resize Logic ---
+    document.getElementById('logoInput').onchange = (e) => {
         const file = e.target.files[0];
-        if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = (event) => {
             const img = new Image();
-            img.onload = function() {
+            img.onload = () => {
                 const canvas = document.getElementById('resizeCanvas');
                 const ctx = canvas.getContext('2d');
+                canvas.width = 200; canvas.height = 200;
                 
-                const targetSize = 200; 
-                canvas.width = targetSize;
-                canvas.height = targetSize;
-
-                // Smart Crop Logic: Beech ka hissa nikaalna
+                // Smart Crop
                 let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
-                if (img.width > img.height) {
-                    srcW = img.height;
-                    srcX = (img.width - img.height) / 2;
-                } else {
-                    srcH = img.width;
-                    srcY = (img.height - img.width) / 2;
-                }
-
-                ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, targetSize, targetSize);
+                if (img.width > img.height) { srcW = img.height; srcX = (img.width - img.height) / 2; }
+                else { srcH = img.width; srcY = (img.height - img.width) / 2; }
                 
-                finalBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                document.getElementById('preview').src = finalBase64;
+                ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, 200, 200);
+                finalLogoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                document.getElementById('preview').src = finalLogoBase64;
                 document.getElementById('preview').style.display = "block";
-                document.getElementById('status').innerText = "✅ Logo Ready & Optimized!";
-                document.getElementById('status').style.color = "blue";
             };
             img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     };
 
-    // Save Branding
+    // Save Brand
     document.getElementById('saveBtn').onclick = async () => {
         const name = document.getElementById('sName').value;
         const color = document.getElementById('sColor').value;
         const status = document.getElementById('status');
-
-        if(!name) return alert("Please enter School Name");
-
-        status.innerText = "⏳ Saving...";
+        
+        status.innerText = "⏳ Updating...";
         try {
             await setDoc(doc(db, "appSettings", "branding"), {
                 schoolName: name,
                 themeColor: color,
-                logoCode: finalBase64 
+                logoCode: finalLogoBase64 
             });
-            alert("Success! Branding Updated.");
-            status.innerText = "✅ All Settings Live!";
+            status.innerText = "✅ Branding Updated Successfully!";
             status.style.color = "green";
-        } catch(e) {
-            alert("Error: " + e.message);
-        }
+        } catch(e) { alert(e.message); }
     };
 
-    // Attendance Function
+    // Attendance Mark Function
     window.markAttendance = async (uid, name, status) => {
         const today = new Date().toISOString().split('T')[0];
-        try {
-            await setDoc(doc(db, "attendance", `${uid}_${today}`), {
-                uid, name, status, date: today, timestamp: new Date()
-            });
-            alert(`${name} marked as ${status}`);
-        } catch(e) { alert("Error: " + e.message); }
+        await setDoc(doc(db, "attendance", `${uid}_${today}`), {
+            uid, name, status, date: today, timestamp: new Date()
+        });
+        alert(`${name} is marked ${status}`);
     };
 
-    // Real-time Student List
+    // Load Students List in Real-time
     onSnapshot(collection(db, "users"), snap => {
         const tbody = document.getElementById('studentTableBody');
         tbody.innerHTML = "";
-        snap.forEach(doc => {
-            const user = doc.data();
+        snap.forEach(docSnap => {
+            const user = docSnap.data();
             if(user.role === "student") {
                 tbody.innerHTML += `<tr>
                     <td><strong>${user.name}</strong></td>
+                    <td>${user.class || '-'}</td>
+                    <td style="color:${user.house}">${user.house || '-'}</td>
                     <td>
-                        <button class="p-btn" onclick="markAttendance('${doc.id}', '${user.name}', 'Present')">P</button>
-                        <button class="a-btn" onclick="markAttendance('${doc.id}', '${user.name}', 'Absent')">A</button>
+                        <button class="p-btn" onclick="markAttendance('${docSnap.id}', '${user.name}', 'Present')">P</button>
+                        <button class="a-btn" onclick="markAttendance('${docSnap.id}', '${user.name}', 'Absent')">A</button>
                     </td>
                 </tr>`;
             }
         });
     });
+
+    window.logout = () => {
+        signOut(auth).then(() => location.href = 'index.html');
+    };
 </script>
 </body>
 </html>
+
