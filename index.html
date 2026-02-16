@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Management - Login</title>
+    <title>School Portal - Login</title>
     <style>
         :root { --main-color: #2c3e50; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--main-color); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: white; color: #333; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; width: 300px; }
-        h2 { margin-bottom: 20px; color: var(--main-color); }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
-        button { width: 100%; padding: 12px; background: var(--main-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        body { font-family: sans-serif; background: var(--main-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: white; }
+        .login-card { background: white; color: #333; padding: 40px; border-radius: 15px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { margin-bottom: 25px; color: var(--main-color); }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        button { width: 100%; padding: 14px; background: var(--main-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; }
         button:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <h2 id="brand-name">School Portal</h2>
+        <h2 id="brand-display">School Portal</h2>
         <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="pass" placeholder="Password">
-        <button id="loginBtn">Login to Dashboard</button>
+        <button id="loginBtn">LOG IN</button>
     </div>
 
     <script type="module">
@@ -28,7 +28,6 @@
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
             authDomain: "abhijeet-69d56.firebaseapp.com",
@@ -37,39 +36,43 @@
             appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
         };
 
-        // Initialize
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Login Function
+        // Branding Load Logic
+        async function loadBranding() {
+            const snap = await getDoc(doc(db, "appSettings", "branding"));
+            if (snap.exists()) {
+                const data = snap.data();
+                document.getElementById('brand-display').innerText = data.schoolName || "School Portal";
+                document.documentElement.style.setProperty('--main-color', data.themeColor || "#2c3e50");
+            }
+        }
+        loadBranding();
+
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('pass').value;
-
-            if(!email || !password) return alert("Please fill all fields");
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // Firestore se role check karna
-                const userRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(userRef);
-
-                if (docSnap.exists()) {
-                    const userData = docSnap.data();
-                    if (userData.role === "admin") {
-                        alert("Welcome Admin: " + userData.name);
-                        // Yahan hum next step mein admin.html par bhejenge
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                if (userSnap.exists()) {
+                    const role = userSnap.data().role;
+                    if (role === "admin") {
+                        // Success! Seedha Admin Dashboard par
+                        window.location.href = "admin.html";
                     } else {
-                        alert("Welcome Student: " + userData.name);
+                        alert("Access Denied: You are not an Admin.");
                     }
                 } else {
-                    alert("User data not found in Database!");
+                    alert("No Profile Found for UID: " + user.uid);
                 }
             } catch (error) {
-                alert("Error: " + error.message);
+                alert("Login Error: " + error.message);
             }
         });
     </script>
