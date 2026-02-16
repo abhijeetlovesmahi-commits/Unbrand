@@ -1,54 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Loading...</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management - Login</title>
     <style>
-        :root { --main-color: #2c3e50; } /* Default Color */
-        body { font-family: sans-serif; background: var(--main-color); color: white; text-align: center; }
-        .card { background: white; color: black; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 50px; }
+        :root { --main-color: #2c3e50; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--main-color); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; color: #333; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; width: 300px; }
+        h2 { margin-bottom: 20px; color: var(--main-color); }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 12px; background: var(--main-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
-    <h1 id="brand-name">School Portal</h1>
-    <div class="card">
-        <img id="app-logo" src="" alt="Logo" style="width:100px; display:none;">
-        <h3>Login</h3>
-        <input type="email" id="email" placeholder="Email"><br><br>
-        <input type="password" id="pass" placeholder="Password"><br><br>
-        <button onclick="login()">Login</button>
+
+    <div class="login-card">
+        <h2 id="brand-name">School Portal</h2>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="pass" placeholder="Password">
+        <button id="loginBtn">Login to Dashboard</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // --- HAR CLIENT KE LIYE BAS YE BADALNA HAI ---
-        const config = {
+        // Firebase Configuration
+        const firebaseConfig = {
             apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
             authDomain: "abhijeet-69d56.firebaseapp.com",
             projectId: "abhijeet-69d56",
-            appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e",
-            // Branding
-            name: "My School Pro",
-            color: "#e74c3c" 
+            storageBucket: "abhijeet-69d56.firebasestorage.app",
+            appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
         };
 
-        // UI Apply
-        document.title = config.name;
-        document.getElementById('brand-name').innerText = config.name;
-        document.documentElement.style.setProperty('--main-color', config.color);
-
-        // Firebase Init
-        const app = initializeApp(config);
+        // Initialize
+        const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        window.login = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            signInWithEmailAndPassword(auth, e, p)
-                .then(() => alert("Login Success!"))
-                .catch(err => alert(err.message));
-        };
+        // Login Function
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('pass').value;
+
+            if(!email || !password) return alert("Please fill all fields");
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Firestore se role check karna
+                const userRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(userRef);
+
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    if (userData.role === "admin") {
+                        alert("Welcome Admin: " + userData.name);
+                        // Yahan hum next step mein admin.html par bhejenge
+                    } else {
+                        alert("Welcome Student: " + userData.name);
+                    }
+                } else {
+                    alert("User data not found in Database!");
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
     </script>
 </body>
 </html>
