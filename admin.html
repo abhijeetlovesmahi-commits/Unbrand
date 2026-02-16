@@ -2,32 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Free Photo Upload</title>
+    <title>Admin - Smart Auto-Resize Logo</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        #preview { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; display: none; margin: 10px auto; border: 2px solid #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+        h2 { color: #333; text-align: center; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 15px; }
+        #preview { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; display: none; margin: 15px auto; border: 3px solid #27ae60; }
+        #status { text-align: center; font-size: 14px; margin-top: 10px; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>🎨 Brand Setup (No Storage)</h2>
-    <label>School Name:</label>
-    <input type="text" id="sName" placeholder="School Name">
+    <h2>🎨 Brand Setup</h2>
     
-    <label>Select Logo (Phone/PC):</label>
+    <label>School Name:</label>
+    <input type="text" id="sName" placeholder="e.g. Green Valley School">
+    
+    <label>Select Logo (Any Size):</label>
     <input type="file" id="logoInput" accept="image/*">
     <img id="preview" src="">
     
     <label>Theme Color:</label>
-    <input type="color" id="sColor" value="#2c3e50">
+    <input type="color" id="sColor" value="#2c3e50" style="height: 50px; cursor: pointer;">
     
-    <button id="saveBtn" class="btn">Save Everything Free</button>
-    <p id="status" style="text-align:center; font-size:12px;"></p>
+    <button id="saveBtn" class="btn">Save Settings</button>
+    <p id="status"></p>
 </div>
+
+<canvas id="resizeCanvas" style="display:none;"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -43,16 +48,35 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let base64Image = "";
+    let finalBase64 = "";
 
-    // Photo ko "Code" (Base64) mein badalne ka logic
+    // --- AUTO RESIZE LOGIC ---
     document.getElementById('logoInput').onchange = function(e) {
         const file = e.target.files[0];
+        if (!file) return;
+
         const reader = new FileReader();
-        reader.onload = function() {
-            base64Image = reader.result; // Ye hai wo "Code"
-            document.getElementById('preview').src = base64Image;
-            document.getElementById('preview').style.display = "block";
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.getElementById('resizeCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set target size (200x200 is perfect for logos)
+                canvas.width = 200;
+                canvas.height = 200;
+                
+                // Draw and resize
+                ctx.drawImage(img, 0, 0, 200, 200);
+                
+                // Convert to compressed Base64 (Quality 0.7 means 70%)
+                finalBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                
+                document.getElementById('preview').src = finalBase64;
+                document.getElementById('preview').style.display = "block";
+                document.getElementById('status').innerText = "✅ Image Optimized!";
+            };
+            img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     };
@@ -62,17 +86,20 @@
         const color = document.getElementById('sColor').value;
         const status = document.getElementById('status');
 
-        status.innerText = "Saving...";
+        if(!name) return alert("Please enter School Name");
+
+        status.innerText = "⏳ Saving to Cloud...";
         try {
             await setDoc(doc(db, "appSettings", "branding"), {
                 schoolName: name,
                 themeColor: color,
-                logoCode: base64Image // Photo text format mein save ho rahi hai
+                logoCode: finalBase64 
             });
-            alert("Settings Saved!");
-            status.innerText = "✅ Done!";
+            alert("Settings Updated Successfully!");
+            status.innerText = "✅ Data Saved!";
         } catch(e) {
             alert("Error: " + e.message);
+            status.innerText = "❌ Error occurred.";
         }
     };
 </script>
