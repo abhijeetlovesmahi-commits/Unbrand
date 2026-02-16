@@ -2,41 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Smart Auto-Resize Logo</title>
+    <title>Admin Dashboard - Perfect Logo Resize</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        h2 { color: #333; text-align: center; margin-bottom: 25px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 15px; }
-        #preview { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; display: none; margin: 15px auto; border: 3px solid #27ae60; }
-        #status { text-align: center; font-size: 14px; margin-top: 10px; color: #666; }
+        .container { max-width: 800px; margin: auto; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; text-align: center; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; transition: 0.3s; }
+        .btn:hover { background: #219150; }
+        #preview { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; display: none; margin: 15px auto; border: 3px solid #27ae60; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        #status { text-align: center; font-size: 14px; margin-top: 10px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .p-btn { background: #2ecc71; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .a-btn { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>🎨 Brand Setup</h2>
-    
-    <label>School Name:</label>
-    <input type="text" id="sName" placeholder="e.g. Green Valley School">
-    
-    <label>Select Logo (Any Size):</label>
-    <input type="file" id="logoInput" accept="image/*">
-    <img id="preview" src="">
-    
-    <label>Theme Color:</label>
-    <input type="color" id="sColor" value="#2c3e50" style="height: 50px; cursor: pointer;">
-    
-    <button id="saveBtn" class="btn">Save Settings</button>
-    <p id="status"></p>
+<div class="container">
+    <div class="card">
+        <h2>🎨 Branding & Style Setup</h2>
+        
+        <label>School Name:</label>
+        <input type="text" id="sName" placeholder="Enter School Name">
+        
+        <label>Select Logo (Any Shape):</label>
+        <input type="file" id="logoInput" accept="image/*">
+        <img id="preview" src="">
+        
+        <label>Theme Color:</label>
+        <input type="color" id="sColor" value="#2c3e50" style="height: 50px; cursor: pointer;">
+        
+        <button id="saveBtn" class="btn">Update School Brand</button>
+        <p id="status"></p>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <button onclick="location.href='reports.html'" class="btn" style="background: #8e44ad;">📊 View Attendance Reports</button>
+    </div>
+
+    <div class="card">
+        <h2>📋 Student Attendance (Today)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <canvas id="resizeCanvas" style="display:none;"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
@@ -50,7 +77,7 @@
 
     let finalBase64 = "";
 
-    // --- AUTO RESIZE LOGIC ---
+    // --- SMART AUTO RESIZE LOGIC (Fixes Stretching) ---
     document.getElementById('logoInput').onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -62,25 +89,34 @@
                 const canvas = document.getElementById('resizeCanvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Set target size (200x200 is perfect for logos)
-                canvas.width = 200;
-                canvas.height = 200;
+                const targetSize = 200; 
+                canvas.width = targetSize;
+                canvas.height = targetSize;
+
+                // Smart Crop Logic: Beech ka hissa nikaalna
+                let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+                if (img.width > img.height) {
+                    srcW = img.height;
+                    srcX = (img.width - img.height) / 2;
+                } else {
+                    srcH = img.width;
+                    srcY = (img.height - img.width) / 2;
+                }
+
+                ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, targetSize, targetSize);
                 
-                // Draw and resize
-                ctx.drawImage(img, 0, 0, 200, 200);
-                
-                // Convert to compressed Base64 (Quality 0.7 means 70%)
-                finalBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                
+                finalBase64 = canvas.toDataURL('image/jpeg', 0.8);
                 document.getElementById('preview').src = finalBase64;
                 document.getElementById('preview').style.display = "block";
-                document.getElementById('status').innerText = "✅ Image Optimized!";
+                document.getElementById('status').innerText = "✅ Logo Ready & Optimized!";
+                document.getElementById('status').style.color = "blue";
             };
             img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     };
 
+    // Save Branding
     document.getElementById('saveBtn').onclick = async () => {
         const name = document.getElementById('sName').value;
         const color = document.getElementById('sColor').value;
@@ -88,20 +124,49 @@
 
         if(!name) return alert("Please enter School Name");
 
-        status.innerText = "⏳ Saving to Cloud...";
+        status.innerText = "⏳ Saving...";
         try {
             await setDoc(doc(db, "appSettings", "branding"), {
                 schoolName: name,
                 themeColor: color,
                 logoCode: finalBase64 
             });
-            alert("Settings Updated Successfully!");
-            status.innerText = "✅ Data Saved!";
+            alert("Success! Branding Updated.");
+            status.innerText = "✅ All Settings Live!";
+            status.style.color = "green";
         } catch(e) {
             alert("Error: " + e.message);
-            status.innerText = "❌ Error occurred.";
         }
     };
+
+    // Attendance Function
+    window.markAttendance = async (uid, name, status) => {
+        const today = new Date().toISOString().split('T')[0];
+        try {
+            await setDoc(doc(db, "attendance", `${uid}_${today}`), {
+                uid, name, status, date: today, timestamp: new Date()
+            });
+            alert(`${name} marked as ${status}`);
+        } catch(e) { alert("Error: " + e.message); }
+    };
+
+    // Real-time Student List
+    onSnapshot(collection(db, "users"), snap => {
+        const tbody = document.getElementById('studentTableBody');
+        tbody.innerHTML = "";
+        snap.forEach(doc => {
+            const user = doc.data();
+            if(user.role === "student") {
+                tbody.innerHTML += `<tr>
+                    <td><strong>${user.name}</strong></td>
+                    <td>
+                        <button class="p-btn" onclick="markAttendance('${doc.id}', '${user.name}', 'Present')">P</button>
+                        <button class="a-btn" onclick="markAttendance('${doc.id}', '${user.name}', 'Absent')">A</button>
+                    </td>
+                </tr>`;
+            }
+        });
+    });
 </script>
 </body>
 </html>
