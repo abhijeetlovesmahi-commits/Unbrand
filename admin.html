@@ -2,165 +2,163 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - School Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admin - School Pro SaaS</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .btn { padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; color: white; transition: 0.3s; text-align: center; text-decoration: none; }
-        .btn-brand { background: #27ae60; }
-        .btn-admission { background: #e67e22; }
-        .btn-report { background: #8e44ad; }
-        .btn-logout { background: #c0392b; width: 100%; }
+        :root { --main: #4361ee; --bg: #f4f7fe; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; display: flex; }
         
-        /* Branding Styles */
-        input[type="text"], input[type="file"] { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        #preview { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; display: none; margin: 10px auto; border: 3px solid #27ae60; }
+        /* Sidebar Navigation */
+        .sidebar { width: 250px; background: #fff; height: 100vh; border-right: 1px solid #e0e0e0; position: fixed; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li { padding: 15px 25px; cursor: pointer; color: #666; transition: 0.3s; font-weight: 500; }
+        .nav-links li:hover, .nav-links li.active { background: var(--main); color: #fff; border-radius: 0 30px 30px 0; margin-right: 10px; }
+
+        /* Main Content Area */
+        .main-content { margin-left: 250px; padding: 30px; width: 100%; }
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Modern Cards */
+        .card { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; box-sizing: border-box; }
+        .btn { background: var(--main); color: #fff; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; color: #555; }
-        .p-btn { background: #2ecc71; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-        .a-btn { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="grid-menu">
-        <button onclick="location.href='admission.html'" class="btn btn-admission">➕ New Admission Form</button>
-        <button onclick="location.href='reports.html'" class="btn btn-report">📊 View Full Reports</button>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img id="side-logo" src="" style="width: 50px; border-radius: 50%;">
+            <h3 id="side-name">School Admin</h3>
+        </div>
+        <ul class="nav-links">
+            <li class="active" onclick="showTab('dashboard')">🏠 Dashboard</li>
+            <li onclick="showTab('branding')">🎨 Branding</li>
+            <li onclick="showTab('website')">🌐 Website Control</li>
+            <li onclick="showTab('students')">👤 Students & Attendance</li>
+            <li onclick="showTab('homework')">📝 Homework & News</li>
+            <li onclick="logout()" style="color: #ff4757;">🚪 Logout</li>
+        </ul>
     </div>
 
-    <div class="card">
-        <h2>🎨 School Branding</h2>
-        <input type="text" id="sName" placeholder="Update School Name">
-        <label>Update Logo:</label>
-        <input type="file" id="logoInput" accept="image/*">
-        <img id="preview" src="">
-        <input type="color" id="sColor" value="#2c3e50" style="width: 100%; height: 50px; cursor: pointer; border: none; border-radius: 8px;">
-        <button id="saveBtn" class="btn btn-brand" style="width: 100%; margin-top: 15px;">Save & Update Brand</button>
-        <p id="status" style="text-align: center; font-weight: bold;"></p>
-    </div>
-
-    <div class="card">
-        <h2>📋 Quick Attendance (Students List)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Student Name</th>
-                    <th>Class</th>
-                    <th>House</th>
-                    <th>Attendance</th>
-                </tr>
-            </thead>
-            <tbody id="studentTableBody">
-                </tbody>
-        </table>
-    </div>
-
-    <button onclick="logout()" class="btn btn-logout">Logout Admin Panel</button>
-</div>
-
-<canvas id="resizeCanvas" style="display:none;"></canvas>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
-        authDomain: "abhijeet-69d56.firebaseapp.com",
-        projectId: "abhijeet-69d56",
-        appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    let finalLogoBase64 = "";
-
-    // --- Smart Logo Resize Logic ---
-    document.getElementById('logoInput').onchange = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.getElementById('resizeCanvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 200; canvas.height = 200;
-                
-                // Smart Crop
-                let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
-                if (img.width > img.height) { srcW = img.height; srcX = (img.width - img.height) / 2; }
-                else { srcH = img.width; srcY = (img.height - img.width) / 2; }
-                
-                ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, 200, 200);
-                finalLogoBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                document.getElementById('preview').src = finalLogoBase64;
-                document.getElementById('preview').style.display = "block";
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    // Save Brand
-    document.getElementById('saveBtn').onclick = async () => {
-        const name = document.getElementById('sName').value;
-        const color = document.getElementById('sColor').value;
-        const status = document.getElementById('status');
+    <div class="main-content">
         
-        status.innerText = "⏳ Updating...";
-        try {
-            await setDoc(doc(db, "appSettings", "branding"), {
-                schoolName: name,
-                themeColor: color,
-                logoCode: finalLogoBase64 
-            });
-            status.innerText = "✅ Branding Updated Successfully!";
-            status.style.color = "green";
-        } catch(e) { alert(e.message); }
-    };
+        <div id="dashboard" class="tab-content active">
+            <h2>Welcome Back, <span id="welcome-name">Admin</span></h2>
+            <div class="grid-3">
+                <div class="card"><h3>Total Students</h3><p id="total-stu">0</p></div>
+                <div class="card"><h3>Today's Notice</h3><p id="total-notices">0</p></div>
+                <div class="card"><h3>Staff Count</h3><p>--</p></div>
+            </div>
+        </div>
 
-    // Attendance Mark Function
-    window.markAttendance = async (uid, name, status) => {
-        const today = new Date().toISOString().split('T')[0];
-        await setDoc(doc(db, "attendance", `${uid}_${today}`), {
-            uid, name, status, date: today, timestamp: new Date()
-        });
-        alert(`${name} is marked ${status}`);
-    };
+        <div id="branding" class="tab-content">
+            <div class="card">
+                <h2>🎨 Master Branding</h2>
+                <div class="form-group">
+                    <label>School Name</label>
+                    <input type="text" id="sName" placeholder="Enter Full Name">
+                </div>
+                <div class="form-group">
+                    <label>Theme Color</label>
+                    <input type="color" id="sColor" value="#4361ee">
+                </div>
+                <button class="btn" onclick="saveBrand()">Update All Branding</button>
+            </div>
+        </div>
 
-    // Load Students List in Real-time
-    onSnapshot(collection(db, "users"), snap => {
-        const tbody = document.getElementById('studentTableBody');
-        tbody.innerHTML = "";
-        snap.forEach(docSnap => {
-            const user = docSnap.data();
-            if(user.role === "student") {
-                tbody.innerHTML += `<tr>
-                    <td><strong>${user.name}</strong></td>
-                    <td>${user.class || '-'}</td>
-                    <td style="color:${user.house}">${user.house || '-'}</td>
-                    <td>
-                        <button class="p-btn" onclick="markAttendance('${docSnap.id}', '${user.name}', 'Present')">P</button>
-                        <button class="a-btn" onclick="markAttendance('${docSnap.id}', '${user.name}', 'Absent')">A</button>
-                    </td>
-                </tr>`;
+        <div id="website" class="tab-content">
+            <div class="card">
+                <h2>🌐 Website Content Manager</h2>
+                <div class="form-group">
+                    <label>Latest Notice (Scroll on Website)</label>
+                    <textarea id="noticeText" rows="3" placeholder="Admission Open for 2026..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Current Vacancies</label>
+                    <input type="text" id="vacancy" placeholder="Needed: Math Teacher (Apply at Office)">
+                </div>
+                <button class="btn" onclick="updateWebsite()">Publish to Public Website</button>
+            </div>
+        </div>
+
+        <div id="students" class="tab-content">
+            <div class="card">
+                <button class="btn" onclick="location.href='admission.html'">➕ New Admission</button>
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>Class</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="student-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD66kWwzsUS4iOZ-4ssE9w9kG1N4fBOOzk",
+            authDomain: "abhijeet-69d56.firebaseapp.com",
+            projectId: "abhijeet-69d56",
+            appId: "1:490125802939:web:3fda6b6b9b4c1af984d89e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- UI Navigation ---
+        window.showTab = (id) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        };
+
+        // --- Dynamic Branding Load ---
+        onSnapshot(doc(db, "appSettings", "branding"), (snap) => {
+            if(snap.exists()){
+                const d = snap.data();
+                document.getElementById('side-name').innerText = d.schoolName;
+                document.getElementById('side-logo').src = d.logoCode;
+                document.documentElement.style.setProperty('--main', d.themeColor);
             }
         });
-    });
 
-    window.logout = () => {
-        signOut(auth).then(() => location.href = 'index.html');
-    };
-</script>
+        // --- Load Students List ---
+        onSnapshot(collection(db, "users"), (snap) => {
+            const tbody = document.getElementById('student-table');
+            let count = 0; tbody.innerHTML = "";
+            snap.forEach(d => {
+                const u = d.data();
+                if(u.role === "student"){
+                    count++;
+                    tbody.innerHTML += `<tr><td>${u.uid}</td><td>${u.name}</td><td>${u.class}</td><td><button class="btn" style="padding:5px 10px">Edit</button></td></tr>`;
+                }
+            });
+            document.getElementById('total-stu').innerText = count;
+        });
+
+        // --- Update Website Notice ---
+        window.updateWebsite = async () => {
+            const n = document.getElementById('noticeText').value;
+            const v = document.getElementById('vacancy').value;
+            await setDoc(doc(db, "appSettings", "website"), { notice: n, vacancies: v });
+            alert("Published to Public Website!");
+        };
+
+    </script>
 </body>
 </html>
-
